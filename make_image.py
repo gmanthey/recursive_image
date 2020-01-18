@@ -3,53 +3,80 @@ import numpy as np
 import cv2
 from scipy.spatial.distance import cdist
 from math import floor, ceil
+import sys
 
 
-def make_image(path, ref_img_path, res_width = None, res_height = None, mini_width = None, mini_height = None, color_from_orig = False, color_diff = 30):
+def make_image(path, ref_img_path, out, res_width = None, res_height = None, mini_width = None, mini_height = None, color_from_orig = False, color_diff = 30):
     """
         Generates a image using a number of images as pixels.
 
         Assigns all the images in the ``path``-variable to pixels of the resulting image. If res_width/res_height is not 
         specified, the minimum width/height needed to include all the images in ``path`` is used. If one of the Variables is given,
         the other one is chosen so that the width/height ratio of the reference image is still intact.
-        If mini_width/mini_height is not specified, the average width/height ratio and the average size of all the images in ``path`` is used. If only one is given, the other one is chosen, so that the average width/height ratio of the images stays intact.
+        If mini_width/mini_height is not specified, the average width/height ratio and the average size of all the images in 
+        ``path`` is used. If only one is given, the other one is chosen, so that the average width/height ratio of the images 
+        stays intact.
 
         Parameters
         ----------
         path : String  
-            Path to images used as pixels. The folder should contain only the images and all the images should be in png or jpg format.  
+            Path to images used as pixels. The folder should contain only the images and all the images should be in png or jpg 
+            format.  
         ref_img_path : String  
             Path to the image used as reference for the resulting image. The image should be in png or jpg format.  
+        out : String
+            The name of the output file. The result will be saved in <out>.png
         res_width : int, optional  
             The number of images that make up the width of the resulting pictures.
         res_height : int, optional
-            The number of images that make up the width of the resulting pictures.
+            The number of images that make up the height of the resulting pictures.
         mini_width : int, optional
             The number of pixels one of the pixel-images is wide.
         mini_height : int, optional
-            The number of pixels one of the pixel-images is height.
+            The number of pixels one of the pixel-images is high.
         color_from_orig : bool, optional
-            If true, the color used for the background of the pixel-images is taken from the reference image, if false, the average color of the pixel-image is used as background.
+            If true, the color used for the background of the pixel-images is taken from the reference image, if false, the 
+            average color of the pixel-image is used as background.
         color_diff : float, optional
-            The maximum difference allowed between the color of the reference image and the average color of the pixel image when randomly assigning images.
+            The maximum difference allowed between the color of the reference image and the average color of the pixel image when
+            randomly assigning images.
 
         Notes
         -----
-        It is advised to give one of res_width/res_height and one of mini_width/mini_height, so that the overall size of the resulting image can be specified, but the program can calculate the best fitting ratios.  
+        It is advised to give one of res_width/res_height and one of mini_width/mini_height, so that the overall size of the 
+        resulting image can be specified, but the program can calculate the best fitting ratios.  
 
-        If color_from_orig is False, color_diff should be kept relatively low, so that the reference image can still be identified. 30 seems to be a good value to still have some variation in the resulting images. If color_diff is very small, so that there are no images available that are that close, a random image is taken from the best fitting 20 images.
+        If color_from_orig is False, color_diff should be kept relatively low, so that the reference image can still be 
+        identified. 30 seems to be a good value to still have some variation in the resulting images. If color_diff is very small,
+        so that there are no images available that are that close, a random image is taken from the best fitting 20 images.
 
-        If color_from_orig is True, color_diff may be chosen higher, so that there is a larger variation in the pixel-images. Then the reference image will always be visible due to the background of the pixel-images. 
+        If color_from_orig is True, color_diff may be chosen higher, so that there is a larger variation in the pixel-images. Then 
+        the reference image will always be visible due to the background of the pixel-images. 
+
+        The program might generate a lot of libpng warnings. This is not a problem, as long as the program keeps running.
     """
-    files = np.array(listdir(path))
+    try:
+        files = np.array(listdir(path))
+    except FileNotFoundError:
+        print('Path {} not found.'.format(path))
+        sys.exit(2)
 
+    
     ref_img = cv2.imread(ref_img_path)
+
+    if ref_img == None:
+        print('Reference image {} not found.'.format(ref_img_path))
+        sys.exit(2)
+    
     avg_rgb = np.zeros([len(files), 3])
     heights = np.zeros(len(files), dtype=int)
     wh_ratios = np.zeros(len(files))
 
     for i in range(len(files)):
         img = cv2.imread(path + files[i])
+        if img == None:
+            print('{}{} is not a supported image.'.format(path, files[i]))
+            sys.exit(2)
 
         avg_rgb[i] = np.mean(img, (0, 1))
         wh_ratios[i] = np.size(img, 1) / np.size(img, 0)
@@ -169,7 +196,7 @@ def make_image(path, ref_img_path, res_width = None, res_height = None, mini_wid
             res_img[y*avg_height:(y+1)*avg_height, x*avg_width:(x+1)*avg_width] = img
 
 
-    cv2.imwrite('res4.png', res_img)
+    cv2.imwrite(out, res_img)
 
 if __name__ == '__main__':
-    make_image('xkcd/', '0b7742.png', res_width=90, mini_height=300)
+    make_image('xkcd/', '0b7742.png', 'res3', res_width=90, mini_height=250, color_from_orig=True, color_diff=50)
