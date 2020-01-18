@@ -1,5 +1,22 @@
 #! /usr/bin/env python3
 
+"""
+This file is part of Recursive Image.
+
+Recursive Image is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Recursive Image is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Recursive Image.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 version = 'Recursive Image v1.0'
 
 from sys import argv, exit
@@ -71,9 +88,9 @@ color_diff = 30
 
 if len(args) > 0:
     try:
-        opts, args = getopt(args, 'hvr:p:o:', ['help', 'version', 'ref-img=', 'img-path=', 'out=', 'out-width=', 'out-height=', 'mini-widht=', 'mini-heigh=', 'ref-background=', 'color-diff='])
+        opts, args = getopt(args, 'hvr:p:o:', ['help', 'version', 'ref-img=', 'img-path=', 'out=', 'out-width=', 'out-height=', 'mini-widht=', 'mini-height=', 'ref-background=', 'color-diff='])
     except GetoptError:
-        print(help_text)
+        print(helptext)
 
     for opt, arg in opts:
         if opt in ('-h', '--help'):

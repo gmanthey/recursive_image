@@ -1,3 +1,20 @@
+"""
+This file is part of Recursive Image.
+
+Recursive Image is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Recursive Image is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Recursive Image.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 from os import listdir
 import numpy as np
 import cv2
@@ -64,7 +81,7 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
     
     ref_img = cv2.imread(ref_img_path)
 
-    if ref_img == None:
+    if ref_img is None:
         print('Reference image {} not found.'.format(ref_img_path))
         sys.exit(2)
     
@@ -74,7 +91,7 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
 
     for i in range(len(files)):
         img = cv2.imread(path + files[i])
-        if img == None:
+        if img is None:
             print('{}{} is not a supported image.'.format(path, files[i]))
             sys.exit(2)
 
@@ -199,4 +216,4 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
     cv2.imwrite(out, res_img)
 
 if __name__ == '__main__':
-    make_image('xkcd/', '0b7742.png', 'res3', res_width=90, mini_height=250, color_from_orig=True, color_diff=50)
+    print('Please execute the recursive_image.py file for using this program.')
