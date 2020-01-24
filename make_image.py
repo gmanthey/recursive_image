@@ -1,18 +1,19 @@
 """
-This file is part of Recursive Image.
+Recursive Image generates a image using other images as pixels.
+Copyright (C) 2020  Georg Manthey
 
-Recursive Image is free software: you can redistribute it and/or modify
+This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-Recursive Image is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Recursive Image.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from os import listdir
@@ -21,7 +22,6 @@ import cv2
 from scipy.spatial.distance import cdist
 from math import floor, ceil
 import sys
-
 
 def make_image(path, ref_img_path, out, res_width = None, res_height = None, mini_width = None, mini_height = None, color_from_orig = False, color_diff = 30):
     """
@@ -89,6 +89,7 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
     heights = np.zeros(len(files), dtype=int)
     wh_ratios = np.zeros(len(files))
 
+    # calculate for all files in path the average-rgb value, width/height ratio and height
     for i in range(len(files)):
         img = cv2.imread(path + files[i])
         if img is None:
@@ -99,6 +100,7 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
         wh_ratios[i] = np.size(img, 1) / np.size(img, 0)
         heights[i] = np.size(img, 0)
 
+    # calculate width/height of pixel-images
     if mini_height == None and mini_width == None:
         wh_ratio = np.mean(wh_ratios)
         re_wh_ratio = np.size(ref_img, 1) / (np.size(ref_img, 0) * wh_ratio)
@@ -118,6 +120,7 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
         wh_ratio = avg_width / avg_height
         re_wh_ratio = np.size(ref_img, 1) / (np.size(ref_img, 0) * wh_ratio)
 
+    # calculate number of images the resulting image will consist of
     if res_height == None and res_width == None:
         width = np.sqrt(len(files) * re_wh_ratio)
         height = len(files) / width
@@ -141,7 +144,7 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
         width = res_width
         height = res_height
 
-
+    # recalculate width/height ratio for the small images from the adjusted width/height values
     wh_ratio = np.size(ref_img, 1) / np.size(ref_img, 0) * height / width
 
     if mini_width == None:
@@ -162,6 +165,8 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
 
     indices_avg = np.arange(len(files))
     
+    # make sure each image appears at least once in the final image by assigning the best fitting image to a pixel in each round
+    # and then deleting the image and the pixel from the pool
     for i in range(len(files)):
         minimum = np.argmin(np.min(diffs, axis = 1))
         index = np.argmin(diffs[minimum])
@@ -175,6 +180,8 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
 
     diffs = cdist(avg_rgb, np.reshape(res_pixels, [-1, 3])[indices_img])
 
+    # now assign one of the best fitting images to the leftover pixels
+    # numbers for how many are best fitting can be adjusted to get a better mixture of pictures
     for i in range(width*height - len(files)):
         mins = np.where(diffs[:, i] < color_diff)[0]
         if len(mins) == 0:
@@ -186,6 +193,10 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
 
     res_img = np.zeros([height*avg_height, width*avg_width, 3], dtype="uint8")
 
+    # build the resulting image from all the small images 
+    # all small images are resized so that they fit in their slot, and the hole image is in the recursive image
+    # fill up the whitespace around the image with either the color of the reference image or with the average rgb value
+    # of the image
     for x in range(width):
         for y in range(height):
             img = cv2.imread(path + files[img_pos[y, x]])
@@ -211,7 +222,6 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
                 color = [int(avg_rgb[img_pos[y, x], 0]), int(avg_rgb[img_pos[y, x], 1]), int(avg_rgb[img_pos[y, x], 2])]
             img = cv2.copyMakeBorder(img, padding_up, padding_down, padding_left, padding_right, borderType=cv2.BORDER_CONSTANT, value = color)
             res_img[y*avg_height:(y+1)*avg_height, x*avg_width:(x+1)*avg_width] = img
-
 
     cv2.imwrite(out, res_img)
 

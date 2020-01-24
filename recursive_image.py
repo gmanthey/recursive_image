@@ -1,20 +1,21 @@
 #! /usr/bin/env python3
 
 """
-This file is part of Recursive Image.
+Recursive Image generates a image using other images as pixels.
+Copyright (C) 2020  Georg Manthey
 
-Recursive Image is free software: you can redistribute it and/or modify
+This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-Recursive Image is distributed in the hope that it will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with Recursive Image.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 version = 'Recursive Image v1.0'
@@ -22,6 +23,7 @@ version = 'Recursive Image v1.0'
 from sys import argv, exit
 from getopt import getopt, GetoptError
 from make_image import make_image
+#import antigravity
 
 helptext = """
 usage: {} -r <reference-image> -p <images-folder> -o <output-image>
@@ -68,6 +70,22 @@ Notes
     reference image will always be visible due to the background of the pixel-images.
 
     The program might generate a lot of libpng warnings. This is not a problem, as long as the program keeps running.
+
+Copyright
+    Copyright (C) 2020  Georg Manthey
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """.format(argv[0])
 
 wrong_argument = """
@@ -92,6 +110,12 @@ if len(args) > 0:
     except GetoptError:
         print(helptext)
 
+    if len(args) > 0:
+        print('''arguments passed without option will be ignored:
+    {}
+        '''.format(args))
+
+    # read the parameters given
     for opt, arg in opts:
         if opt in ('-h', '--help'):
             print(helptext)
