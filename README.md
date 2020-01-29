@@ -7,7 +7,7 @@ A program to generate a image using multiple images as pixels. Inspired by a [re
  - python (version 3 or higher)
  - numpy
  - scipy
- - opencv
+ - PIL
 
 ## Installation
 
