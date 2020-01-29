@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from os import listdir
 import numpy as np
-import cv2
+from PIL import Image
 from scipy.spatial.distance import cdist
 from math import floor, ceil
 import sys
@@ -78,10 +78,10 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
         print('Path {} not found.'.format(path))
         sys.exit(2)
 
-    
-    ref_img = cv2.imread(ref_img_path)
-
-    if ref_img is None:
+    try:
+        ref_img = Image.open(ref_img_path)
+        ref_img = ref_img.convert(mode="RGB")
+    except FileNotFoundError:
         print('Reference image {} not found.'.format(ref_img_path))
         sys.exit(2)
     
@@ -91,11 +91,13 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
 
     # calculate for all files in path the average-rgb value, width/height ratio and height
     for i in range(len(files)):
-        img = cv2.imread(path + files[i])
-        if img is None:
+        try:
+            img_file = Image.open(path + files[i])
+            img_file = img_file.convert(mode="RGB")
+            img = np.asarray(img_file)
+        except OSError:
             print('{}{} is not a supported image.'.format(path, files[i]))
             sys.exit(2)
-
         avg_rgb[i] = np.mean(img, (0, 1))
         wh_ratios[i] = np.size(img, 1) / np.size(img, 0)
         heights[i] = np.size(img, 0)
@@ -152,7 +154,7 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
     else:
         avg_width = mini_width
 
-    res_pixels = cv2.resize(ref_img, dsize = (width, height), interpolation=cv2.INTER_AREA)
+    res_pixels = np.asarray(ref_img.resize((width, height)))
 
     pixel_list = np.reshape(res_pixels, [-1, 3])
     indices_img = np.random.permutation(width*height)
@@ -191,7 +193,8 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
         y = indices_img[i] // width
         img_pos[y, x] = minimum
 
-    res_img = np.zeros([height*avg_height, width*avg_width, 3], dtype="uint8")
+    #res_img = np.zeros([height*avg_height, width*avg_width, 3], dtype="uint8")
+    res_img = Image.new('RGB', (width*avg_width, height*avg_height))
 
     # build the resulting image from all the small images 
     # all small images are resized so that they fit in their slot, and the hole image is in the recursive image
@@ -199,7 +202,8 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
     # of the image
     for x in range(width):
         for y in range(height):
-            img = cv2.imread(path + files[img_pos[y, x]])
+            img = Image.open(path + files[img_pos[y, x]])
+            img = img.convert(mode="RGB")
             if wh_ratios[img_pos[y, x]] > wh_ratio:
                 new_width = avg_width
                 new_height = int(new_width / wh_ratios[img_pos[y, x]])
@@ -215,15 +219,20 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
                 padding_left = floor((avg_width - new_width) / 2)
                 padding_right = ceil((avg_width - new_width) / 2)
 
-            img = cv2.resize(img, (new_width, new_height))
+            img = np.asarray(img.resize((new_width, new_height)))
             if color_from_orig:
                 color = [int(res_pixels[y, x, 0]), int(res_pixels[y, x, 1]), int(res_pixels[y, x, 2])]
             else:
                 color = [int(avg_rgb[img_pos[y, x], 0]), int(avg_rgb[img_pos[y, x], 1]), int(avg_rgb[img_pos[y, x], 2])]
-            img = cv2.copyMakeBorder(img, padding_up, padding_down, padding_left, padding_right, borderType=cv2.BORDER_CONSTANT, value = color)
-            res_img[y*avg_height:(y+1)*avg_height, x*avg_width:(x+1)*avg_width] = img
+            bordered_img = np.zeros([avg_height, avg_width, 3], dtype='uint8')
+            bordered_img[:, :] = color
+            bordered_img[padding_up:(padding_up + new_height), padding_left:(padding_left + new_width)] = img
+            bordered_img = Image.fromarray(bordered_img)
+            res_img.paste(bordered_img, (x*avg_width, y*avg_height))
+            #res_img[y*avg_height:(y+1)*avg_height, x*avg_width:(x+1)*avg_width] = bordered_img
 
-    cv2.imwrite(out, res_img)
+    #res_img = Image.fromarray(res_img)
+    res_img.save(out)
 
 if __name__ == '__main__':
     print('Please execute the recursive_image.py file for using this program.')
