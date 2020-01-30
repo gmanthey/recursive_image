@@ -57,6 +57,8 @@ Other Arguments
     --ref-background
         If 1, the color used for the background of the pixel-images is taken from the reference image, if 0, the average color of the 
         pixel-image is used as background.
+    --verbose
+        Makes program print status messages.
 
 Notes
     It is advised to give one of out_width/out_height and one of mini_width/mini_height, so that the overall size of the resulting
@@ -103,12 +105,14 @@ mini_width = None
 mini_height = None
 ref_background = False
 color_diff = 30
+verbose = False
 
 if len(args) > 0:
     try:
-        opts, args = getopt(args, 'hvr:p:o:', ['help', 'version', 'ref-img=', 'img-path=', 'out=', 'out-width=', 'out-height=', 'mini-widht=', 'mini-height=', 'ref-background=', 'color-diff='])
+        opts, args = getopt(args, 'hvr:p:o:', ['help', 'version', 'ref-img=', 'img-path=', 'out=', 'out-width=', 'out-height=', 'mini-widht=', 'mini-height=', 'ref-background=', 'color-diff=', 'verbose'])
     except GetoptError:
         print(helptext)
+        exit(2)
 
     if len(args) > 0:
         print('''arguments passed without option will be ignored:
@@ -177,12 +181,14 @@ if len(args) > 0:
             if color_diff < 0:
                 print('color-diff must be a positive number')
                 exit(2)
+        if opt == '--verbose':
+            verbose = True
     
     if ref_img == "" or path == "" or out == "":
         print(helptext)
         exit(2)
 
-    make_image(path, ref_img, out, out_width, out_height, mini_width, mini_height, ref_background, color_diff)
+    make_image(path, ref_img, out, out_width, out_height, mini_width, mini_height, ref_background, color_diff, verbose)
 
 else:
     print(helptext)

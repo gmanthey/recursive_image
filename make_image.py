@@ -23,7 +23,7 @@ from scipy.spatial.distance import cdist
 from math import floor, ceil
 import sys
 
-def make_image(path, ref_img_path, out, res_width = None, res_height = None, mini_width = None, mini_height = None, color_from_orig = False, color_diff = 30):
+def make_image(path, ref_img_path, out, res_width = None, res_height = None, mini_width = None, mini_height = None, color_from_orig = False, color_diff = 30, verbose = False):
     """
         Generates a image using a number of images as pixels.
 
@@ -88,6 +88,9 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
     avg_rgb = np.zeros([len(files), 3])
     heights = np.zeros(len(files), dtype=int)
     wh_ratios = np.zeros(len(files))
+
+    if verbose:
+        print('Analysing images in path {}...'.format(path))
 
     # calculate for all files in path the average-rgb value, width/height ratio and height
     for i in range(len(files)):
@@ -165,6 +168,9 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
 
     indices_avg = np.arange(len(files))
     
+    if verbose:
+        print('Assigning images to best fitting positions...')
+
     # make sure each image appears at least once in the final image by assigning the best fitting image to a pixel in each round
     # and then deleting the image and the pixel from the pool
     for i in range(len(files)):
@@ -192,6 +198,9 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
         img_pos[y, x] = minimum
 
     res_img = np.zeros([height*avg_height, width*avg_width, 3], dtype="uint8")
+
+    if verbose:
+        print('Assembling recursive image...')
 
     # build the resulting image from all the small images 
     # all small images are resized so that they fit in their slot, and the hole image is in the recursive image
@@ -222,6 +231,9 @@ def make_image(path, ref_img_path, out, res_width = None, res_height = None, min
                 color = [int(avg_rgb[img_pos[y, x], 0]), int(avg_rgb[img_pos[y, x], 1]), int(avg_rgb[img_pos[y, x], 2])]
             img = cv2.copyMakeBorder(img, padding_up, padding_down, padding_left, padding_right, borderType=cv2.BORDER_CONSTANT, value = color)
             res_img[y*avg_height:(y+1)*avg_height, x*avg_width:(x+1)*avg_width] = img
+
+    if verbose:
+        print('Writing image to outfile {}...'.format(out))
 
     cv2.imwrite(out, res_img)
 

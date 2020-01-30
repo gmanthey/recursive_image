@@ -11,7 +11,8 @@ A program to generate a image using multiple images as pixels. Inspired by a [re
 
 ## Installation
 
- Just install the required software and download the two .py files.
+ Just install the required software and download the two .py files.  
+ If the installation of opencv is concidered to difficult, there is also a [seperate branch](https://github.com/gmanthey/recursive_image/tree/PIL) in which pillow, a python library is used. As it gives worse results than opencv, the main branch is kept using opencv.
 
 ## Usage
 
